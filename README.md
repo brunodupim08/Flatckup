@@ -1,2 +1,2 @@
 # Flatckup
-Backup the list of installed flatpaks or restore from an existing list.
+Backs up the list of installed flatpaks and also installs from an existing list.
