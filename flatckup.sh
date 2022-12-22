@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-version="v0.0.9"
+version="v1.0.0"
 backup=false
 restore=false
 
