@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 version="v0.0.9"
-path="./"
 backup=false
 restore=false
 
@@ -12,13 +11,13 @@ function usage(){
 
 		flatckup [OPTION] [FILE-NAME]
 
-            flatckup -b 'backup-name-file'
-            flatckup -b 'backup-name-file' -p 'path'
+            flatckup -b
+            flatckup -b 'path-name-file'
+            flatckup -b 'name-file'
 
             flatckup -r 'backup.txt'
 
     -b|--backup)        Create a backup file.
-    -p|--path)          Path to save backup.
 
     -r|--restore)       Restore programs with backup file.
     
@@ -84,15 +83,36 @@ function error_3(){
     alert_sound
     exit 3
 }
+function error_4(){
+    echo -e "Error 4 !!!
+
+        ${path} is a directory, not a file.
+
+    Try "flatckup -h or --help" for more options.
+    "
+    alert_sound
+    exit 3
+}
 #================= functions process =================#
 function backup(){
-    if [[ -z "${file}" ]]; then
-        file="flatckup-backup-list $(date)"
-    fi
-    list=$(flatpak list --app --columns=application | tail -n +1) 
-    (
+    list=$(flatpak list --app --columns=application | tail -n +1)
+    file="flatckup-backup-list $(date)"
+
+    if [[ -z "${path}" ]]; then
+        touch "${file}".txt 2> /dev/null || error_2
         echo -e "${list}" > "${file}".txt
-    )
+    elif [[ -d "${path}" && "${path:-1}" = "/" ]]; then
+        error_4
+    elif [[ -d "${path}" && ! "${path:-1}" = "/" ]]; then
+        touch "${path}""${file}".txt 2> /dev/null || error_2
+        echo -e "${list}" > "${path}""${file}".txt
+    elif [[ ! -d "${path}" && "${path:-1}" = "/" ]]; then
+        touch "${path}""${file}".txt 2> /dev/null || error_2
+        echo -e "${list}" > "${path}""${file}".txt
+    elif [[ ! -d "${path}" && ! "${path:-1}" = "/" ]]; then
+        touch "${path}" 2> /dev/null || error_2
+        echo -e "${list}" > "${path}"
+    fi
 }
 function restore(){
     if [[ ! -d "${file_input}" && -e "${file_input}" ]]; then
@@ -106,7 +126,7 @@ function restore(){
     fi
 }
 #Option.
-[[ "${#}" -eq "0" || "${#}" -gt "3" ]] && error_1
+[[ "${#}" -eq "0" || "${#}" -gt "2" ]] && error_1
 while [[ "${#}" -ne "0" ]]; do
     case "${1}" in
         --version)
@@ -115,16 +135,8 @@ while [[ "${#}" -ne "0" ]]; do
         -h|--help)
             usage
         ;;
-        -p|--path)
-            path="${2}"
-            if [[ ! -d "${file}" && ! -e "${file}" ]]; then
-                mkdir -p -m 750 "${file}" 2> /dev/null || error_2
-            fi
-            p=true
-            shift
-        ;;
         -b|--backup)
-            file="${2}"
+            path="${2}"
             backup=true
             shift
         ;;
@@ -140,8 +152,6 @@ while [[ "${#}" -ne "0" ]]; do
     shift
 done
 if [[ "$backup" = true && "$restore" = true ]];then
-    error_1
-elif [[ "$restore" = true && "$p" = true ]];then
     error_1
 elif [[ "$backup" = true ]];then
     backup
