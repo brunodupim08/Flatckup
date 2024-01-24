@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-version="v1.0.0"
+version="v1.1"
 backup=false
 restore=false
 
@@ -96,7 +96,7 @@ function error_4(){
 #================= functions process =================#
 function backup(){
     list=$(flatpak list --app --columns=application | tail -n +1)
-    file="flatckup-backup-list $(date)"
+    file="flatckup_backup_list-$(date +"%Y-%m-%d_%H:%M:%S")"
 
     if [[ -z "${path}" ]]; then
         touch "${file}".txt 2> /dev/null || error_2
@@ -120,7 +120,7 @@ function restore(){
             (
                 flatpak install ${line_input} -y
             )
-        done < "$file_input"
+        done <<< "$(cat $file_input; echo "")" 
     else
         error_3
     fi
