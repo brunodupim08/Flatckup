@@ -114,17 +114,15 @@ function backup(){
         echo -e "${list}" > "${path}"
     fi
 }
-function restore(){
+function restore() {
     if [[ ! -d "${file_input}" && -e "${file_input}" ]]; then
-        while IFS= read -r line_input; do
-            (
-                flatpak install ${line_input} -y
-            )
-        done <<< "$(cat $file_input; echo "")" 
+        all_lines=$(paste -s -d ' ' "${file_input}")
+        flatpak install ${all_lines} -y
     else
         error_3
     fi
 }
+
 #Option.
 [[ "${#}" -eq "0" || "${#}" -gt "2" ]] && error_1
 while [[ "${#}" -ne "0" ]]; do
